@@ -44,10 +44,16 @@ def task(text,&cmd)
 	else
       TaskArray.instance.last_task.task_detail(text,cmd)
     end
+    TaskArray.instance.add_hash(TaskArray.instance.last_task)
 end
 
 def sh(cmd)
 	system(cmd)
+end
+
+def call_and_delete(current_task)
+	TaskArray.instance.cmdHash[current_task].call if TaskArray.instance.cmdHash[current_task] != nil
+    TaskArray.instance.cmdHash.delete(current_task)
 end
 
 def showlist
@@ -56,8 +62,27 @@ def showlist
 	end
 end
 
-def analysis
-	puts "analysis"
+def analysis(current_task)
+    if current_task != nil
+	    if TaskArray.instance.taskHash.keys.include? current_task
+	    	if TaskArray.instance.taskHash[current_task].is_a? Array
+	    		TaskArray.instance.taskHash[current_task].each do |pretask|
+                   analysis(pretask)
+	    		end
+	    		call_and_delete(current_task)
+	    	else
+                 if TaskArray.instance.cmdHash.keys.include? current_task
+                   analysis(TaskArray.instance.taskHash[current_task])
+                   call_and_delete(current_task)
+                 else
+                   call_and_delete(current_task)
+                 end
+	    	end
+	    else
+	    	puts "Error, No #{current_task}"
+	    	exit
+	    end
+    end
 end
 
 options = parse(ARGV)
@@ -66,5 +91,5 @@ load(options.srake_file)
 if options.list
    	showlist
 else
-   	analysis
+   	analysis(TaskArray.instance.taskArray[0].pre_task)
 end

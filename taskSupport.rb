@@ -1,17 +1,24 @@
 require 'singleton'
 
 class TaskArray
-    attr_accessor :taskArray
+    attr_accessor :taskArray, :taskHash, :cmdHash
 	include Singleton
 
 	def initialize
 		@taskArray = []
+		@taskHash = {}
+		@cmdHash = {}
 	end
 
     def add_task(task)
     	@taskArray << task
     end
     
+    def add_hash(task)
+        @taskHash[task.task_name] = task.pre_task
+        @cmdHash[task.task_name] = task.task_cmd  
+    end
+
     def last_task
         @taskArray.last
     end
