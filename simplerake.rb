@@ -1,5 +1,38 @@
 require './taskSupport'
+require 'optparse'
+require 'ostruct'
 
+def parse(args)
+
+    options = OpenStruct.new
+    options.list = false
+    options.srake_file = ""
+	opt_parser = OptionParser.new do |opts|
+		opts.banner = "Usage: ./simplerake.rb [options] srake_file [task]"
+
+		opts.on_tail("-T","list task") do
+			options.list = true
+		end
+
+		opts.on_tail("-h","print help") do
+			puts opts
+			exit
+		end
+	end
+
+	opt_parser.parse!(args)
+
+	if ARGV.length == 1 && File.readable?(ARGV[0])
+		options.srake_file = ARGV[0]
+	elsif ARGV.length == 2 && File.readable?(ARGV[1])
+		options.srake_file = ARGV[1]
+	else
+		puts "InValid Command"
+		exit
+	end
+
+    return options
+end
 
 def desc(text)
     TaskArray.instance.add_task Task.new(text)
@@ -14,16 +47,24 @@ def task(text,&cmd)
 end
 
 def sh(cmd)
-  system(cmd)
+	system(cmd)
 end
 
+def showlist
+	TaskArray.instance.taskArray.each do |tasks|
+		puts "#{tasks.task_name}             # #{tasks.description}" if tasks.task_name != :default
+	end
+end
 
-load 'test.rake'
+def analysis
+	puts "analysis"
+end
 
-TaskArray.instance.taskArray.each do |tasks|
-	puts "taskname:#{tasks.task_name}"
-	puts "taskdesc:#{tasks.description}" unless tasks.description == nil
- 	#puts tasks.task_cmd unless tasks.task_cmd == nil
- 	puts "pre_task:#{tasks.pre_task}" unless tasks.pre_task == nil
- 	puts "/////"
+options = parse(ARGV)
+load(options.srake_file)    
+
+if options.list
+   	showlist
+else
+   	analysis
 end

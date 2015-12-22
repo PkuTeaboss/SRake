@@ -23,7 +23,7 @@ end
 class Task
  attr_accessor :task_name, :pre_task, :description, :task_cmd, :if_read
  def initialize(text,cmd = 'This is a desc')
- 	@description = nil
+ 	@description = ""
  	@task_cmd = nil
  	@pre_task = nil
  	@if_read = false
