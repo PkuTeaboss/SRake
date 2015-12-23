@@ -66,33 +66,23 @@ end
 def analysis(current_task)
     if current_task != nil
 	    if TaskArray.instance.taskHash.keys.include? current_task
-	    	if TaskArray.instance.taskHash[current_task].is_a? Array
-	    		TaskArray.instance.taskHash[current_task].each do |pretask|
-	    		   if TaskArray.instance.inprocess.include? pretask 
-	    		   	 puts "Error: #{pretask} is in task circle"
-	    		   	 exit
-	    		   	else
-	    		   	 TaskArray.instance.inprocess << pretask
-	    		   	end
-                   analysis(pretask)
-                   TaskArray.instance.inprocess.delete(pretask)
-	    		end
-	    		call_and_delete(current_task)
-	    	else
-                 if TaskArray.instance.cmdHash.keys.include? current_task
-                 	if TaskArray.instance.inprocess.include? TaskArray.instance.taskHash[current_task] 
-	    		   	 puts "Error: #{TaskArray.instance.taskHash[current_task]} is in task circle"
-	    		   	 exit
-	    		   	else
-	    		   	 TaskArray.instance.inprocess << TaskArray.instance.taskHash[current_task]
-	    		   	end
-                   analysis(TaskArray.instance.taskHash[current_task])
-                   TaskArray.instance.inprocess.delete(TaskArray.instance.taskHash[current_task])
-                   call_and_delete(current_task)
-                 else
-                   call_and_delete(current_task)
-                 end
-	    	end
+	    	if TaskArray.instance.taskHash[current_task] != nil
+		    	TaskArray.instance.taskHash[current_task].each do |pretask|
+		    		if TaskArray.instance.inprocess.include? pretask 
+		    		   	 puts "Error: #{pretask} is in task circle"
+		    		   	 exit
+		    		else
+		    		   	 TaskArray.instance.inprocess << pretask
+		    		end
+		    		if TaskArray.instance.cmdHash.keys.include? pretask
+	                  analysis(pretask)
+	                  TaskArray.instance.inprocess.delete(pretask)
+	                end
+		    	end
+	            call_and_delete(current_task)
+	        else
+              call_and_delete(current_task)
+	        end
 	    else
 	    	puts "Error, #{current_task} not found in the file"
 	    	exit
@@ -107,8 +97,12 @@ if $target == nil
 	puts "Error, :default not found"
 	exit
 end
+if $target.length > 1
+    puts "Error, more than one target"
+	exit
+end
 if options.list
    	showlist
 else
-   	analysis($target)
+   	analysis($target[0])
 end
