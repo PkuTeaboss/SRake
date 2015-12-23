@@ -45,6 +45,7 @@ def task(text,&cmd)
       TaskArray.instance.last_task.task_detail(text,cmd)
     end
     TaskArray.instance.add_hash(TaskArray.instance.last_task)
+    $target = TaskArray.instance.last_task.pre_task if TaskArray.instance.last_task.task_name == :default
 end
 
 def sh(cmd)
@@ -67,29 +68,47 @@ def analysis(current_task)
 	    if TaskArray.instance.taskHash.keys.include? current_task
 	    	if TaskArray.instance.taskHash[current_task].is_a? Array
 	    		TaskArray.instance.taskHash[current_task].each do |pretask|
+	    		   if TaskArray.instance.inprocess.include? pretask 
+	    		   	 puts "Error: #{pretask} is in task circle"
+	    		   	 exit
+	    		   	else
+	    		   	 TaskArray.instance.inprocess << pretask
+	    		   	end
                    analysis(pretask)
+                   TaskArray.instance.inprocess.delete(pretask)
 	    		end
 	    		call_and_delete(current_task)
 	    	else
                  if TaskArray.instance.cmdHash.keys.include? current_task
+                 	if TaskArray.instance.inprocess.include? TaskArray.instance.taskHash[current_task] 
+	    		   	 puts "Error: #{TaskArray.instance.taskHash[current_task]} is in task circle"
+	    		   	 exit
+	    		   	else
+	    		   	 TaskArray.instance.inprocess << TaskArray.instance.taskHash[current_task]
+	    		   	end
                    analysis(TaskArray.instance.taskHash[current_task])
+                   TaskArray.instance.inprocess.delete(TaskArray.instance.taskHash[current_task])
                    call_and_delete(current_task)
                  else
                    call_and_delete(current_task)
                  end
 	    	end
 	    else
-	    	puts "Error, No #{current_task}"
+	    	puts "Error, #{current_task} not found in the file"
 	    	exit
 	    end
     end
 end
 
 options = parse(ARGV)
-load(options.srake_file)    
-
+$target = nil  
+load(options.srake_file)  
+if $target == nil
+	puts "Error, :default not found"
+	exit
+end
 if options.list
    	showlist
 else
-   	analysis(TaskArray.instance.taskArray[0].pre_task)
+   	analysis($target)
 end
